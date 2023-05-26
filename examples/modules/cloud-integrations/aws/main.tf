@@ -71,7 +71,7 @@ resource "newrelic_cloud_aws_link_account" "newrelic_cloud_integration_push" {
   account_id             = var.newrelic_account_id
   arn                    = aws_iam_role.newrelic_aws_role.arn
   metric_collection_mode = "PUSH"
-  name                   = "${var.name} metric stream"
+  name                   = "${var.name}: Metric Stream"
   depends_on             = [aws_iam_role_policy_attachment.newrelic_aws_policy_attach]
 }
 
@@ -124,15 +124,6 @@ resource "aws_s3_bucket_ownership_controls" "newrelic_ownership_controls" {
 resource "aws_kinesis_firehose_delivery_stream" "newrelic_firehose_stream" {
   name        = "newrelic_firehose_stream_${var.name}"
   destination = "http_endpoint"
-
-  s3_configuration {
-    role_arn           = aws_iam_role.firehose_newrelic_role.arn
-    bucket_arn         = aws_s3_bucket.newrelic_aws_bucket.arn
-    buffer_size        = 10
-    buffer_interval    = 400
-    compression_format = "GZIP"
-  }
-
   http_endpoint_configuration {
     url                = var.newrelic_account_region == "US" ? "https://aws-api.newrelic.com/cloudwatch-metrics/v1" : "https://aws-api.eu01.nr-data.net/cloudwatch-metrics/v1"
     name               = "New Relic ${var.name}"
@@ -141,7 +132,13 @@ resource "aws_kinesis_firehose_delivery_stream" "newrelic_firehose_stream" {
     buffering_interval = 60
     role_arn           = aws_iam_role.firehose_newrelic_role.arn
     s3_backup_mode     = "FailedDataOnly"
-
+    s3_configuration {
+      role_arn           = aws_iam_role.firehose_newrelic_role.arn
+      bucket_arn         = aws_s3_bucket.newrelic_aws_bucket.arn
+      buffering_size     = 10
+      buffering_interval = 400
+      compression_format = "GZIP"
+    }
     request_configuration {
       content_encoding = "GZIP"
     }
@@ -200,7 +197,7 @@ resource "newrelic_cloud_aws_link_account" "newrelic_cloud_integration_pull" {
   account_id             = var.newrelic_account_id
   arn                    = aws_iam_role.newrelic_aws_role.arn
   metric_collection_mode = "PULL"
-  name                   = "${var.name} pull"
+  name                   = "${var.name}: Pull"
   depends_on             = [aws_iam_role_policy_attachment.newrelic_aws_policy_attach]
 }
 
@@ -267,8 +264,7 @@ resource "aws_s3_bucket" "newrelic_configuration_recorder_s3" {
 }
 
 resource "aws_iam_role" "newrelic_configuration_recorder" {
-  name = "newrelic_configuration_recorder-${var.name}"
-
+  name               = "newrelic_configuration_recorder-${var.name}"
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
