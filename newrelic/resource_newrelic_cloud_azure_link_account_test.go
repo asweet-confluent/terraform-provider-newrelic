@@ -39,7 +39,7 @@ func TestAccNewRelicCloudAzureLinkAccount_Basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccCloudLinkedAccountsCleanup(t, "azure") },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNewRelicCloudAzureLinkAccountDestroy,
 		Steps: []resource.TestStep{

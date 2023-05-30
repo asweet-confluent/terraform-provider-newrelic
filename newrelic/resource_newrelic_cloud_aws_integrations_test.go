@@ -22,7 +22,7 @@ func TestAccNewRelicCloudAwsIntegrations_Basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccCloudLinkedAccountsCleanup(t, "aws") },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNewRelicCloudAwsIntegrationsDestroy,
 		Steps: []resource.TestStep{
@@ -85,7 +85,7 @@ func testAccCheckNewRelicCloudAwsIntegrationsExist(n string) resource.TestCheckF
 func testAccCheckNewRelicCloudAwsIntegrationsDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ProviderConfig).NewClient
 	for _, r := range s.RootModule().Resources {
-		if r.Type != "newrelic_cloud_aws_integrations" {
+		if r.Type != "newrelic_cloud_aws_integrations" && r.Type != "newrelic_cloud_aws_link_account" {
 			continue
 		}
 

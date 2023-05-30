@@ -26,7 +26,7 @@ func TestAccNewRelicCloudGcpLinkAccount(t *testing.T) {
 	testGcpAccountName := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccCloudLinkedAccountsCleanup(t, "gcp") },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccNewRelicCloudGcpLinkAccountDestroy,
 		Steps: []resource.TestStep{

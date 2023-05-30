@@ -23,7 +23,7 @@ func TestAccNewRelicCloudGcpIntegrations_Basic(t *testing.T) {
 	testGcpAccountName := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccCloudLinkedAccountsCleanup(t, "gcp") },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccNewRelicCloudGcpIntegrationsDestroy,
 		Steps: []resource.TestStep{
@@ -82,7 +82,7 @@ func testAccNewRelicCloudGcpIntegrationsExists(n string) resource.TestCheckFunc 
 func testAccNewRelicCloudGcpIntegrationsDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ProviderConfig).NewClient
 	for _, r := range s.RootModule().Resources {
-		if r.Type != "newrelic_cloud_gcp_integrations" {
+		if r.Type != "newrelic_cloud_gcp_integrations" && r.Type != "newrelic_cloud_gcp_link_account" {
 			continue
 		}
 

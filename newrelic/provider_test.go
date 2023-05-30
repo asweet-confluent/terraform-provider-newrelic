@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/apm"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/cloud"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/config"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/logconfigurations"
@@ -241,6 +242,43 @@ func testAccApplicationsCleanup(t *testing.T) {
 // deleting any resources that might be cross-account, such as workloads.
 func generateNameForIntegrationTestResource() string {
 	return fmt.Sprintf("tf-test-%s", acctest.RandString(15))
+}
+
+// testAccCloudLinkedAccountsCleanup handles cleaning up/deleting cloud accounts linked to the
+// specified New Relic account, of the specified provider (aws, azure, gcp).
+// Deleting linked accounts also deletes associated integrations
+func testAccCloudLinkedAccountsCleanup(t *testing.T, provider string) {
+	if testAccCleanupComplete {
+		return
+	}
+	client := cloud.New(config.Config{
+		PersonalAPIKey: testAccAPIKey,
+	})
+	t.Logf("***** Deleting '%s' cloud linked accounts created by integration tests ******", provider)
+	cloudLinkedAccounts, err := client.GetLinkedAccounts(provider)
+	if err != nil {
+		t.Logf("error fetching '%s' cloud linked accounts: %s", provider, err)
+	}
+
+	if cloudLinkedAccounts == nil {
+		t.Logf("no '%s' cloud linked accounts found to be deleted.", provider)
+	} else {
+		cloudLinkedAccountsToBeDisabled := make([]cloud.CloudUnlinkAccountsInput, 0)
+		for index, cloudLinkedAccount := range *cloudLinkedAccounts {
+			cloudLinkedAccountsToBeDisabled = append(cloudLinkedAccountsToBeDisabled, cloud.CloudUnlinkAccountsInput{LinkedAccountId: cloudLinkedAccount.ID})
+			t.Logf("identified '%s' cloud linked account #%d: %d", provider, index+1, cloudLinkedAccount.ID)
+		}
+
+		_, err = client.CloudUnlinkAccount(testAccountID, cloudLinkedAccountsToBeDisabled)
+
+		if err == nil {
+			t.Logf("deleted %d '%s' cloud linked accounts", len(cloudLinkedAccountsToBeDisabled), provider)
+		}
+	}
+
+	t.Logf("testacc cleanup of cloud linked accounts complete (provider: %s)", provider)
+	testAccCleanupComplete = true
+
 }
 
 // Deleting the data partitions as they start with "Log_Test_"

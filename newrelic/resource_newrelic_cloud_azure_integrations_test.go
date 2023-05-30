@@ -18,7 +18,7 @@ func TestAccNewRelicCloudAzureIntegration_Basic(t *testing.T) {
 	randName := acctest.RandString(5)
 	resourceName := "newrelic_cloud_azure_integrations.bar"
 
-	t.Skip("Skipping test until we can get a better Azure test account")
+	// t.Skip("Skipping test until we can get a better Azure test account")
 
 	testAzureApplicationID := os.Getenv("INTEGRATION_TESTING_AZURE_APPLICATION_ID")
 	if testAzureApplicationID == "" {
@@ -41,7 +41,7 @@ func TestAccNewRelicCloudAzureIntegration_Basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccCloudLinkedAccountsCleanup(t, "azure") },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNewRelicCloudAzureIntegrationsDestroy,
 		Steps: []resource.TestStep{
@@ -106,7 +106,7 @@ func testAccCheckNewRelicCloudAzureIntegrationsExist(n string) resource.TestChec
 func testAccCheckNewRelicCloudAzureIntegrationsDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ProviderConfig).NewClient
 	for _, r := range s.RootModule().Resources {
-		if r.Type != "newrelic_cloud_azure_integrations" {
+		if r.Type != "newrelic_cloud_azure_integrations" && r.Type != "newrelic_cloud_azure_link_account" {
 			continue
 		}
 
